@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"encoding/json"
 	"fmt"
+	"time"
 	"net/http"
 	"github.com/labstack/echo"
 )
@@ -18,6 +19,18 @@ type Product struct {
 	gorm.Model
 	Code  string
 	Price uint
+}
+
+type Plan struct {
+	gorm.Model
+	SiteId string
+	StageId string
+	OperId string
+	ResourceId string
+	ProductId string
+	PlanQty float32
+	StartTime time.Time
+	EndTime time.Time
 }
 
 func initDb() {
@@ -41,7 +54,7 @@ func initDb() {
 	}
 
 	db = conn
-	db.Debug().AutoMigrate(&Product{}) //Database migration
+	db.Debug().AutoMigrate(&Product{}, &Plan{}) //Database migration
 }
 
 func initWeb() {
@@ -53,9 +66,9 @@ func initWeb() {
 		return c.String(http.StatusOK, "Hello World Again!")
 	})
 	e.GET("/plan", func(c echo.Context) error {
-		var prods []Product
-		db.Find(&prods)
-		doc, _ := json.Marshal(prods);
+		var plans []Plan
+		db.Find(&plans)
+		doc, _ := json.Marshal(plans);
 		return c.String(http.StatusOK, string(doc))
 	})
 	e.Logger.Fatal(e.Start(":1213"))
