@@ -23,14 +23,14 @@ type Product struct {
 
 type Plan struct {
 	gorm.Model
-	SiteId string
-	StageId string
-	OperId string
-	ResourceId string
-	ProductId string
-	PlanQty float32
-	StartTime time.Time
-	EndTime time.Time
+	SiteId string `json:"siteId"`
+	StageId string `json:"stageId"`
+	OperId string `json:"operId"`
+	ResourceId string `json:"resourceId"`
+	ProductId string `json:"productId"`
+	PlanQty float32 `json:"planQty"`
+	StartTime time.Time `json:"startTime"`
+	EndTime time.Time `json:"endTime"`
 }
 
 func initDb() {
@@ -65,7 +65,7 @@ func initWeb() {
 	e.GET("/again", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello World Again!")
 	})
-	e.GET("/plan", func(c echo.Context) error {
+	e.GET("/api/plan", func(c echo.Context) error {
 		var plans []Plan
 		db.Find(&plans)
 		doc, _ := json.Marshal(plans);
