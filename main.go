@@ -7,31 +7,12 @@ import (
 	"github.com/joho/godotenv"
 	"encoding/json"
 	"fmt"
-	"time"
 	"net/http"
 	"github.com/labstack/echo"
+	data "web_server.com/m/v1/data"
 )
 
 var db *gorm.DB //database
-
-// Product is ...
-type Product struct {
-	gorm.Model
-	Code  string
-	Price uint
-}
-
-type Plan struct {
-	gorm.Model
-	SiteId string `json:"siteId"`
-	StageId string `json:"stageId"`
-	OperId string `json:"operId"`
-	ResourceId string `json:"resourceId"`
-	ProductId string `json:"productId"`
-	PlanQty float32 `json:"planQty"`
-	StartTime time.Time `json:"startTime"`
-	EndTime time.Time `json:"endTime"`
-}
 
 func initDb() {
 	e := godotenv.Load() //Load .env file
@@ -54,7 +35,7 @@ func initDb() {
 	}
 
 	db = conn
-	db.Debug().AutoMigrate(&Product{}, &Plan{}) //Database migration
+	db.Debug().AutoMigrate(&data.User{}, &data.Plan{}) //Database migration
 }
 
 func initWeb() {
@@ -66,10 +47,21 @@ func initWeb() {
 		return c.String(http.StatusOK, "Hello World Again!")
 	})
 	e.GET("/api/plan", func(c echo.Context) error {
-		var plans []Plan
+		var plans []data.Plan
 		db.Find(&plans)
-		doc, _ := json.Marshal(plans);
+		doc, _ := json.Marshal(plans)
 		return c.String(http.StatusOK, string(doc))
+	})
+	e.POST("/api/login", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+				return err
+		} else {
+			email := json_map["email"].(string)
+			password := json_map["password"].(string)
+			return c.String(http.StatusOK, "email: " + email + ", password: " + password)
+		}
 	})
 	e.Logger.Fatal(e.Start(":1213"))
 }
