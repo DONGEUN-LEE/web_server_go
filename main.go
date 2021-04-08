@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"github.com/labstack/echo"
 	data "web_server.com/m/v1/data"
+	"github.com/dgrijalva/jwt-go"
 )
 
 var db *gorm.DB //database
@@ -59,11 +60,26 @@ func initWeb() {
 				return err
 		} else {
 			email := json_map["email"].(string)
-			password := json_map["password"].(string)
-			return c.String(http.StatusOK, "email: " + email + ", password: " + password)
+			// password := json_map["password"].(string)
+			token, _ := createToken(email)
+			return c.String(http.StatusOK, token)
 		}
 	})
 	e.Logger.Fatal(e.Start(":1213"))
+}
+
+func createToken(userid string) (string, error) {
+  var err error
+  //Creating Access Token
+  atClaims := jwt.MapClaims{}
+  atClaims["authorized"] = true
+  atClaims["user_id"] = userid
+  at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+  token, err := at.SignedString([]byte(os.Getenv("SECRET_KEY")))
+  if err != nil {
+     return "", err
+  }
+  return token, nil
 }
 
 func main() {
