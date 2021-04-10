@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo"
 	data "web_server.com/m/v1/data"
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var db *gorm.DB //database
@@ -59,10 +60,28 @@ func initWeb() {
 		if err != nil {
 				return err
 		} else {
+			var user data.User;
 			email := json_map["email"].(string)
-			// password := json_map["password"].(string)
-			token, _ := createToken(email)
-			return c.String(http.StatusOK, token)
+			password := []byte(json_map["password"].(string))
+			db.Where("email = ?", email).First(&user)
+			
+			// hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+			// if err != nil {
+			// 		return err
+			// }
+
+			loginRes := data.LoginRes{}
+			err = bcrypt.CompareHashAndPassword([]byte(user.Password), password)
+			if err == nil {
+				token, _ := createToken(email)
+				loginRes.Token = token
+				loginRes.Message = "Success"
+			} else {
+				loginRes.Message = "Fail"
+			}
+
+			doc, _ := json.Marshal(loginRes)
+			return c.String(http.StatusOK, string(doc))
 		}
 	})
 	e.Logger.Fatal(e.Start(":1213"))
